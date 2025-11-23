@@ -6,7 +6,7 @@ export const config = {
     env: process.env.NODE_ENV || 'development',
   },
   database: {
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST || '192.168.1.6',
     port: parseInt(process.env.DB_PORT || '3306', 10),
     name: process.env.DB_NAME || 'stream_sync_lite',
     user: process.env.DB_USER || 'root',
