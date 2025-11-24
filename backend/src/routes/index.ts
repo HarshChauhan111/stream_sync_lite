@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
 import fcmRoutes from './fcm.routes';
+import videoRoutes from './video.routes';
+import notificationRoutes from './notification.routes';
 
 const router = Router();
 
@@ -16,5 +18,7 @@ router.get('/health', (req, res) => {
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/fcm', fcmRoutes);
+router.use('/videos', videoRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

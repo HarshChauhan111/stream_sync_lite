@@ -5,6 +5,68 @@ import { fcmTokenSchema } from '../validations/auth.validation';
 import { getFirebaseMessaging, isFirebaseInitialized } from '../config/firebase';
 
 /**
+ * Helper function to send FCM notification to a user
+ * Exported for use in other services and routes
+ */
+export const sendFCMToUser = async (
+  userId: number,
+  title: string,
+  body: string,
+  data?: Record<string, string>
+): Promise<{ successCount: number; failureCount: number }> => {
+  if (!isFirebaseInitialized()) {
+    throw new Error('Firebase is not initialized');
+  }
+
+  // Get all FCM tokens for the user
+  const fcmTokens = await FCMToken.findAll({
+    where: { user_id: userId },
+  });
+
+  if (fcmTokens.length === 0) {
+    return { successCount: 0, failureCount: 0 };
+  }
+
+  const messaging = getFirebaseMessaging();
+  const tokens = fcmTokens.map((t) => t.token);
+
+  // Send notification to all user's devices
+  const message = {
+    notification: {
+      title,
+      body,
+    },
+    data: data || {},
+    tokens,
+  };
+
+  const response = await messaging.sendEachForMulticast(message);
+
+  // Remove invalid tokens
+  if (response.failureCount > 0) {
+    const tokensToRemove: string[] = [];
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success) {
+        tokensToRemove.push(tokens[idx]);
+      }
+    });
+
+    if (tokensToRemove.length > 0) {
+      await FCMToken.destroy({
+        where: {
+          token: tokensToRemove,
+        },
+      });
+    }
+  }
+
+  return {
+    successCount: response.successCount,
+    failureCount: response.failureCount,
+  };
+};
+
+/**
  * Save or update FCM token for a user
  */
 export const saveFCMToken = async (

@@ -156,6 +156,250 @@ class ApiService {
     }
   }
 
+  // Get Videos
+  Future<List<Map<String, dynamic>>> getVideos({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.get(
+        Uri.parse('${AppConfig.baseUrl}/videos?limit=$limit&offset=$offset'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(AppConfig.connectionTimeout);
+
+      final data = _handleResponse(response);
+      return List<Map<String, dynamic>>.from(data['videos'] ?? []);
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Get Video By ID
+  Future<Map<String, dynamic>?> getVideoById(String videoId) async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.get(
+        Uri.parse('${AppConfig.baseUrl}/videos/$videoId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(AppConfig.connectionTimeout);
+
+      final data = _handleResponse(response);
+      return data['video'] as Map<String, dynamic>?;
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Update Video Progress
+  Future<bool> updateVideoProgress(String videoId, int position) async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.post(
+        Uri.parse('${AppConfig.baseUrl}/videos/$videoId/progress'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'position': position}),
+      ).timeout(AppConfig.connectionTimeout);
+
+      _handleResponse(response);
+      return true;
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Toggle Favorite
+  Future<bool> toggleFavorite(String videoId) async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.post(
+        Uri.parse('${AppConfig.baseUrl}/videos/$videoId/favorite'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(AppConfig.connectionTimeout);
+
+      _handleResponse(response);
+      return true;
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Get Favorites
+  Future<List<Map<String, dynamic>>> getFavorites() async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.get(
+        Uri.parse('${AppConfig.baseUrl}/videos/favorites'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(AppConfig.connectionTimeout);
+
+      final data = _handleResponse(response);
+      return List<Map<String, dynamic>>.from(data['favorites'] ?? []);
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Get Notifications
+  Future<Map<String, dynamic>> getNotifications() async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.get(
+        Uri.parse('${AppConfig.baseUrl}/notifications'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(AppConfig.connectionTimeout);
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Mark Notification as Read
+  Future<bool> markNotificationAsRead(String notificationId) async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.patch(
+        Uri.parse('${AppConfig.baseUrl}/notifications/$notificationId/read'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(AppConfig.connectionTimeout);
+
+      _handleResponse(response);
+      return true;
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Mark All Notifications as Read
+  Future<bool> markAllNotificationsAsRead() async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.patch(
+        Uri.parse('${AppConfig.baseUrl}/notifications/read-all'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ).timeout(AppConfig.connectionTimeout);
+
+      _handleResponse(response);
+      return true;
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Delete Notification
+  Future<bool> deleteNotification(String notificationId) async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final request = http.Request(
+        'DELETE',
+        Uri.parse('${AppConfig.baseUrl}/notifications/$notificationId'),
+      );
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      });
+
+      final streamedResponse = await _client.send(request);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      _handleResponse(response);
+      return true;
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  // Send Test Push
+  Future<bool> sendTestPush({
+    required String title,
+    required String body,
+  }) async {
+    try {
+      final accessToken = HiveStorageService.getAccessToken();
+      if (accessToken == null) {
+        throw Exception('No access token found');
+      }
+
+      final response = await _client.post(
+        Uri.parse('${AppConfig.baseUrl}/fcm/test-push'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'title': title,
+          'body': body,
+        }),
+      ).timeout(AppConfig.connectionTimeout);
+
+      _handleResponse(response);
+      return true;
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
   // Handle Response
   Map<String, dynamic> _handleResponse(http.Response response) {
     final data = jsonDecode(response.body) as Map<String, dynamic>;

@@ -4,7 +4,7 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
 import 'login_page.dart';
-import 'profile_page.dart';
+import 'main_navigation_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -64,7 +64,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const ProfilePage()),
+            MaterialPageRoute(builder: (_) => const MainNavigationPage()),
           );
         } else if (state is AuthUnauthenticated) {
           Navigator.of(context).pushReplacement(

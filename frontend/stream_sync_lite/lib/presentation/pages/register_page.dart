@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_event.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_state.dart';
-import 'package:stream_sync_lite/presentation/pages/profile_page.dart';
+import 'package:stream_sync_lite/presentation/pages/main_navigation_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -53,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
+              MaterialPageRoute(builder: (_) => const MainNavigationPage()),
               (route) => false,
             );
           } else if (state is AuthError) {

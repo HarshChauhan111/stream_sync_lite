@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stream_sync_lite/core/di/dependency_injection.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_event.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_state.dart';
-import 'package:stream_sync_lite/presentation/pages/profile_page.dart';
+import 'package:stream_sync_lite/presentation/pages/main_navigation_page.dart';
 import 'package:stream_sync_lite/presentation/pages/register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -45,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
+              MaterialPageRoute(builder: (_) => const MainNavigationPage()),
             );
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(

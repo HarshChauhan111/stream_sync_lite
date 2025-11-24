@@ -5,11 +5,23 @@ import 'package:stream_sync_lite/core/di/dependency_injection.dart';
 import 'package:stream_sync_lite/data/services/firebase_service.dart';
 import 'package:stream_sync_lite/data/services/hive_storage_service.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_bloc.dart';
+import 'package:stream_sync_lite/presentation/bloc/video/video_bloc.dart';
+import 'package:stream_sync_lite/presentation/bloc/notification/notification_bloc.dart';
 import 'package:stream_sync_lite/presentation/pages/splash_page.dart';
+import 'package:stream_sync_lite/presentation/pages/home_page.dart';
+import 'package:stream_sync_lite/presentation/pages/login_page.dart';
+import 'package:stream_sync_lite/presentation/pages/register_page.dart';
+import 'package:stream_sync_lite/presentation/pages/profile_page.dart';
+import 'package:stream_sync_lite/presentation/pages/notifications_page.dart';
+import 'package:stream_sync_lite/presentation/pages/main_navigation_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+  
   // Initialize Firebase
   await Firebase.initializeApp();
 
@@ -30,8 +42,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<AuthBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => getIt<AuthBloc>()),
+        BlocProvider(create: (context) => getIt<VideoBloc>()),
+        BlocProvider(create: (context) => getIt<NotificationBloc>()),
+      ],
       child: MaterialApp(
         title: 'Stream Sync Lite',
         debugShowCheckedModeBanner: false,
@@ -47,6 +63,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
         home: const SplashPage(),
+        routes: {
+          '/main': (context) => const MainNavigationPage(),
+          '/home': (context) => const HomePage(),
+          '/login': (context) => const LoginPage(),
+          '/register': (context) => const RegisterPage(),
+          '/profile': (context) => const ProfilePage(),
+          '/notifications': (context) => const NotificationsPage(),
+        },
       ),
     );
   }

@@ -25,9 +25,10 @@ export const connectDatabase = async (): Promise<void> => {
     console.log('✅ Database connection established successfully.');
     
     // Sync models with database
-    // In development: use { force: false } to avoid dropping tables
-    // Use { alter: true } only when you need schema changes
-    await sequelize.sync({ force: false });
+    // force: true drops existing tables and recreates them (WARNING: deletes all data!)
+    // alter: true updates existing tables to match models (safer for development)
+    // force: false keeps existing schema (use in production)
+    await sequelize.sync({ alter: true });
     console.log('✅ Database models synchronized.');
   } catch (error) {
     console.error('❌ Unable to connect to the database:', error);

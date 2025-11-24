@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_event.dart';
 import 'package:stream_sync_lite/presentation/bloc/auth/auth_state.dart';
+import 'package:stream_sync_lite/presentation/bloc/notification/notification_bloc.dart';
+import 'package:stream_sync_lite/presentation/bloc/notification/notification_event.dart';
+import 'package:stream_sync_lite/presentation/bloc/notification/notification_state.dart';
 import 'package:stream_sync_lite/presentation/pages/login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -13,11 +16,21 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _bodyController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     // Fetch latest user data when page loads
     context.read<AuthBloc>().add(AuthGetUserRequested());
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _bodyController.dispose();
+    super.dispose();
   }
 
   void _logout() {
@@ -49,20 +62,71 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _showTestPushDialog() {
+    _titleController.text = 'Test Notification';
+    _bodyController.text = 'This is a test push notification!';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Send Test Push'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _bodyController,
+                decoration: const InputDecoration(
+                  labelText: 'Body',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final title = _titleController.text.trim();
+                final body = _bodyController.text.trim();
+
+                if (title.isNotEmpty && body.isNotEmpty) {
+                  context.read<NotificationBloc>().add(
+                    NotificationTestPushSent(title: title, body: body),
+                  );
+                  Navigator.of(dialogContext).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill in both title and body'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Send'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-            tooltip: 'Logout',
-          ),
-        ],
-      ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthUnauthenticated) {
@@ -214,6 +278,20 @@ class _ProfilePageState extends State<ProfilePage> {
                         value: _formatDate(user.updatedAt),
                       ),
                       const SizedBox(height: 32),
+
+                      // Test Push Notification Button
+                      OutlinedButton.icon(
+                        onPressed: _showTestPushDialog,
+                        icon: const Icon(Icons.notification_add),
+                        label: const Text('Send Test Push'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
                       // Logout Button
                       ElevatedButton.icon(
