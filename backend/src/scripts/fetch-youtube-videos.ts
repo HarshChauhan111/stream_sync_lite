@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { Video } from '../models';
 
-const YOUTUBE_API_KEY = 'AIzaSyD7WVoLICq_rbFmcFYO3wjpvi0ktYleBxQ';
+require('dotenv').config();
+
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY ;
 
 interface YouTubeChannel {
   handle: string;
