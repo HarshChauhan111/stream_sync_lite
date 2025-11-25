@@ -64,7 +64,7 @@ void main() async {
     // Load environment variables
     print('📁 Loading environment variables...');
     try {
-      await dotenv.load(fileName: "/.env");
+      await dotenv.load(fileName: ".env");
       print('✅ Environment variables loaded');
     } catch (e) {
       print('⚠️ No .env file found, using defaults: $e');
