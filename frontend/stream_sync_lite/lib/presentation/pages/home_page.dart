@@ -315,18 +315,22 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      video.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    Flexible(
+                      child: Text(
+                        video.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 4),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
                           child: Text(
@@ -339,64 +343,69 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                video.isFavorite ? Icons.favorite : Icons.favorite_border,
-                                color: video.isFavorite ? Colors.red : null,
+                        const SizedBox(width: 4),
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: IconButton(
+                            icon: Icon(
+                              video.isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: video.isFavorite ? Colors.red : null,
+                            ),
+                            iconSize: 18,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () {
+                              context.read<VideoBloc>().add(
+                                VideoFavoriteToggled(video.id),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert, size: 18),
+                            padding: EdgeInsets.zero,
+                            iconSize: 18,
+                            onSelected: (value) => _handleVideoMenuAction(value, video),
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'favorite',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      video.isFavorite ? Icons.favorite : Icons.favorite_border,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(video.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
+                                  ],
+                                ),
                               ),
-                              iconSize: 20,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              onPressed: () {
-                                context.read<VideoBloc>().add(
-                                  VideoFavoriteToggled(video.id),
-                                );
-                              },
-                            ),
-                            PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert, size: 20),
-                              padding: EdgeInsets.zero,
-                              onSelected: (value) => _handleVideoMenuAction(value, video),
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: 'favorite',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        video.isFavorite ? Icons.favorite : Icons.favorite_border,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(video.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'),
-                                    ],
-                                  ),
+                              const PopupMenuItem(
+                                value: 'details',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.info_outline, size: 20),
+                                    SizedBox(width: 12),
+                                    Text('View Details'),
+                                  ],
                                 ),
-                                const PopupMenuItem(
-                                  value: 'details',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.info_outline, size: 20),
-                                      SizedBox(width: 12),
-                                      Text('View Details'),
-                                    ],
-                                  ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'share',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.share, size: 20),
+                                    SizedBox(width: 12),
+                                    Text('Share'),
+                                  ],
                                 ),
-                                const PopupMenuItem(
-                                  value: 'share',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.share, size: 20),
-                                      SizedBox(width: 12),
-                                      Text('Share'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

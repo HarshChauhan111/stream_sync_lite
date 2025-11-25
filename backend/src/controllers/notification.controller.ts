@@ -157,6 +157,8 @@ export const sendTestPush = async (req: AuthRequest, res: Response): Promise<voi
     const userId = req.user!.userId;
     const { title, body } = req.body;
 
+    console.log('📬 Test push notification request:', { userId, title, body });
+
     if (!title || !body) {
       res.status(400).json({
         success: false,
@@ -166,6 +168,7 @@ export const sendTestPush = async (req: AuthRequest, res: Response): Promise<voi
     }
 
     // Create notification in database
+    console.log('💾 Creating notification in database...');
     const notification = await Notification.create({
       userId,
       title,
@@ -174,9 +177,18 @@ export const sendTestPush = async (req: AuthRequest, res: Response): Promise<voi
       type: 'system',
     });
 
+    console.log('✅ Notification created:', {
+      id: notification.id,
+      userId: notification.userId,
+      title: notification.title,
+      type: notification.type,
+      isRead: notification.isRead,
+    });
+
     // Send push notification to user's devices
     try {
-      await sendFCMToUser(
+      console.log('📤 Sending FCM push notification...');
+      const result = await sendFCMToUser(
         userId,
         title,
         body,
@@ -186,13 +198,16 @@ export const sendTestPush = async (req: AuthRequest, res: Response): Promise<voi
         }
       );
 
+      console.log('✅ FCM notification sent:', result);
+
       res.json({
         success: true,
         message: 'Test push notification sent successfully',
         data: notification,
+        fcmResult: result,
       });
     } catch (fcmError: any) {
-      console.error('FCM Error:', fcmError);
+      console.error('❌ FCM Error:', fcmError);
       res.status(500).json({
         success: false,
         message: 'Notification created but failed to send push',
@@ -201,11 +216,13 @@ export const sendTestPush = async (req: AuthRequest, res: Response): Promise<voi
       });
     }
   } catch (error: any) {
-    console.error('Error sending test push:', error);
+    console.error('❌ Error sending test push:', error);
+    console.error('Stack trace:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to send test push notification',
       error: error.message,
+      details: error.stack,
     });
   }
 };

@@ -43,6 +43,7 @@ Notification.init(
     userId: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
+      field: 'user_id',
       references: {
         model: 'users',
         key: 'id',
@@ -88,6 +89,7 @@ Notification.init(
     sequelize,
     tableName: 'notifications',
     timestamps: true,
+    underscored: true,
   }
 );
 
