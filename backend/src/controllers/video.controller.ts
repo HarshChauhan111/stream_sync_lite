@@ -14,6 +14,8 @@ export const getVideos = async (req: AuthRequest, res: Response): Promise<void> 
     const limit = parseInt(req.query.limit as string) || 10;
     const offset = parseInt(req.query.offset as string) || 0;
 
+    console.log(`📹 getVideos called - userId: ${userId}, limit: ${limit}, offset: ${offset}`);
+
     // Get latest videos
     const videos = await Video.findAll({
       limit,
@@ -21,9 +23,13 @@ export const getVideos = async (req: AuthRequest, res: Response): Promise<void> 
       order: [['publishedDate', 'DESC']],
     });
 
+    console.log(`✅ Found ${videos.length} videos`);
+
     // If user is logged in, get their progress/favorites
     if (userId) {
       const videoIds = videos.map(v => v.id);
+      console.log(`🔍 Fetching progress for videoIds: ${videoIds.join(', ')}`);
+      
       const progressData = await VideoProgress.findAll({
         where: {
           userId,
@@ -31,22 +37,32 @@ export const getVideos = async (req: AuthRequest, res: Response): Promise<void> 
         },
       });
 
+      console.log(`✅ Found ${progressData.length} progress records`);
+      progressData.forEach(p => {
+        console.log(`  📊 Video ${p.videoId}: isFavorite=${p.isFavorite}, position=${p.lastPlayedPosition}`);
+      });
+
       const progressMap = new Map(progressData.map(p => [p.videoId, p]));
 
-      const videosWithProgress = videos.map(video => ({
-        id: video.id,
-        title: video.title,
-        channelName: video.channelName,
-        thumbnailUrl: video.thumbnailUrl,
-        videoUrl: video.videoUrl,
-        duration: video.duration,
-        publishedDate: video.publishedDate,
-        description: video.description,
-        viewCount: video.viewCount,
-        likeCount: video.likeCount,
-        isFavorite: progressMap.get(video.id)?.isFavorite || false,
-        lastPlayedPosition: progressMap.get(video.id)?.lastPlayedPosition || 0,
-      }));
+      const videosWithProgress = videos.map(video => {
+        const progress = progressMap.get(video.id);
+        const result = {
+          id: video.id,
+          title: video.title,
+          channelName: video.channelName,
+          thumbnailUrl: video.thumbnailUrl,
+          videoUrl: video.videoUrl,
+          duration: video.duration,
+          publishedDate: video.publishedDate,
+          description: video.description,
+          viewCount: video.viewCount,
+          likeCount: video.likeCount,
+          isFavorite: progress?.isFavorite || false,
+          lastPlayedPosition: progress?.lastPlayedPosition || 0,
+        };
+        console.log(`  🎬 Video ${video.id} mapped: isFavorite=${result.isFavorite}`);
+        return result;
+      });
 
       res.json({
         success: true,
@@ -179,6 +195,8 @@ export const toggleFavorite = async (req: AuthRequest, res: Response): Promise<v
     const { id } = req.params;
     const userId = req.user!.userId;
 
+    console.log(`🎯 Toggle favorite - User: ${userId}, Video: ${id}`);
+
     const video = await Video.findByPk(id);
     if (!video) {
       res.status(404).json({
@@ -196,6 +214,7 @@ export const toggleFavorite = async (req: AuthRequest, res: Response): Promise<v
     if (progress) {
       progress.isFavorite = !progress.isFavorite;
       await progress.save();
+      console.log(`✅ Toggled favorite to: ${progress.isFavorite}`);
     } else {
       progress = await VideoProgress.create({
         userId,
@@ -203,6 +222,7 @@ export const toggleFavorite = async (req: AuthRequest, res: Response): Promise<v
         isFavorite: true,
         lastPlayedPosition: 0,
       });
+      console.log(`✅ Created new favorite record: true`);
     }
 
     res.json({

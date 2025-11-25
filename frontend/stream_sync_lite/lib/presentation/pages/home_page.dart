@@ -20,11 +20,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    print('🏠 HomePage initState called');
     // Load videos on init
+    print('📹 Dispatching VideoLoadRequested event...');
     context.read<VideoBloc>().add(const VideoLoadRequested());
     
     // Setup scroll listener for pagination
     _scrollController.addListener(_onScroll);
+    print('✅ HomePage initialized');
   }
 
   @override

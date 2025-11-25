@@ -22,6 +22,8 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     
+    print('🎬 SplashPage initState');
+    
     // Setup animations
     _animationController = AnimationController(
       vsync: this,
@@ -43,11 +45,20 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     );
 
     _animationController.forward();
+    print('✅ Animations started');
 
     // Check authentication status after animation
     Future.delayed(const Duration(milliseconds: 2500), () {
+      print('⏰ Checking authentication...');
       if (mounted) {
-        context.read<AuthBloc>().add(AuthCheckRequested());
+        try {
+          context.read<AuthBloc>().add(AuthCheckRequested());
+          print('✅ AuthCheckRequested event sent');
+        } catch (e) {
+          print('❌ Error sending AuthCheckRequested: $e');
+        }
+      } else {
+        print('⚠️ Widget not mounted, skipping auth check');
       }
     });
   }
@@ -62,14 +73,27 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        print('🔄 SplashPage AuthState changed: ${state.runtimeType}');
+        
         if (state is AuthAuthenticated) {
+          print('✅ User authenticated, navigating to MainNavigationPage');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const MainNavigationPage()),
           );
         } else if (state is AuthUnauthenticated) {
+          print('⚠️ User not authenticated, navigating to LoginPage');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const LoginPage()),
           );
+        } else if (state is AuthError) {
+          print('❌ Auth error: ${state.message}');
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+          );
+        } else if (state is AuthLoading) {
+          print('⏳ Auth loading...');
+        } else {
+          print('🤔 Unknown auth state: $state');
         }
       },
       child: Scaffold(

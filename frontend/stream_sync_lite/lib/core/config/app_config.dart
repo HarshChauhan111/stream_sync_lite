@@ -1,7 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AppConfig {
   // Backend API Configuration
-  static final  baseUrl = dotenv.env['API_URL'];
+  static const  baseUrl = "http://192.168.1.7:3000/api";
   
   // API Endpoints
   static const String loginEndpoint = '/auth/login';

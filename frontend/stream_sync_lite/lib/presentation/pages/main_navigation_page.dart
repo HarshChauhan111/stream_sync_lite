@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/notification/notification_bloc.dart';
 import '../bloc/notification/notification_state.dart';
+import '../bloc/video/video_bloc.dart';
+import '../bloc/video/video_event.dart';
 import 'home_page.dart';
 import 'notifications_page.dart';
-import 'downloads_page.dart';
+import 'favorites_page.dart';
 import 'profile_page.dart';
 
 class MainNavigationPage extends StatefulWidget {
@@ -20,14 +22,14 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   final List<Widget> _pages = [
     const HomePage(),
     const NotificationsPage(),
-    const DownloadsPage(),
+    const FavoritesPage(),
     const ProfilePage(),
   ];
 
   final List<String> _titles = [
     'StreamSync Lite',
     'Notifications',
-    'Downloads',
+    'Favorites',
     'Profile',
   ];
 
@@ -73,8 +75,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                 label: 'Notifications',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.download),
-                label: 'Downloads',
+                icon: Icon(Icons.favorite),
+                label: 'Favorites',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.person),

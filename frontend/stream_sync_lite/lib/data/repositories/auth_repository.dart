@@ -80,6 +80,10 @@ class AuthRepository {
         // Save user data
         await HiveStorageService.saveUser(authResponse.data!.user.toJson());
 
+        // Register FCM token after successful login
+        await _registerFcmToken();
+        print('✅ FCM token registered after login');
+
         return _userDataToUser(authResponse.data!.user);
       } else {
         throw Exception('Login failed: No data returned');

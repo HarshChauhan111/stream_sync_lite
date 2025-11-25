@@ -9,28 +9,47 @@ import 'package:stream_sync_lite/presentation/bloc/notification/notification_blo
 final getIt = GetIt.instance;
 
 Future<void> setupDependencies() async {
-  // Services
-  getIt.registerLazySingleton<ApiService>(() => ApiService());
-  getIt.registerLazySingleton<FirebaseService>(() => FirebaseService());
+  try {
+    print('  📦 Registering services...');
+    // Services
+    getIt.registerLazySingleton<ApiService>(() => ApiService());
+    print('    ✓ ApiService registered');
+    
+    getIt.registerLazySingleton<FirebaseService>(() => FirebaseService());
+    print('    ✓ FirebaseService registered');
 
-  // Repositories
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepository(
-      apiService: getIt<ApiService>(),
-      firebaseService: getIt<FirebaseService>(),
-    ),
-  );
+    print('  📚 Registering repositories...');
+    // Repositories
+    getIt.registerLazySingleton<AuthRepository>(
+      () => AuthRepository(
+        apiService: getIt<ApiService>(),
+        firebaseService: getIt<FirebaseService>(),
+      ),
+    );
+    print('    ✓ AuthRepository registered');
 
-  // BLoCs
-  getIt.registerFactory<AuthBloc>(
-    () => AuthBloc(authRepository: getIt<AuthRepository>()),
-  );
-  
-  getIt.registerFactory<VideoBloc>(
-    () => VideoBloc(apiService: getIt<ApiService>()),
-  );
-  
-  getIt.registerFactory<NotificationBloc>(
-    () => NotificationBloc(apiService: getIt<ApiService>()),
-  );
+    print('  🎯 Registering BLoCs...');
+    // BLoCs
+    getIt.registerFactory<AuthBloc>(
+      () => AuthBloc(authRepository: getIt<AuthRepository>()),
+    );
+    print('    ✓ AuthBloc registered');
+    
+    getIt.registerFactory<VideoBloc>(
+      () => VideoBloc(apiService: getIt<ApiService>()),
+    );
+    print('    ✓ VideoBloc registered');
+    
+    getIt.registerFactory<NotificationBloc>(
+      () => NotificationBloc(apiService: getIt<ApiService>()),
+    );
+    print('    ✓ NotificationBloc registered');
+    
+    print('  ✅ All dependencies registered successfully');
+  } catch (e, stackTrace) {
+    print('  ❌ Error during dependency registration:');
+    print('  Error: $e');
+    print('  StackTrace: $stackTrace');
+    rethrow;
+  }
 }

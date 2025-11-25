@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:stream_sync_lite/data/services/hive_storage_service.dart';
+import 'package:stream_sync_lite/data/models/notification_model.dart';
 
 class FirebaseService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -25,17 +27,19 @@ class FirebaseService {
 
       // Handle foreground messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint('Foreground message received: ${message.notification?.title}');
+        debugPrint('📨 Foreground message received: ${message.notification?.title}');
         _handleMessage(message);
       });
 
-      // Handle background messages
+      // Handle background messages when app is opened
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        debugPrint('Message opened from background: ${message.notification?.title}');
+        debugPrint('📨 Message opened from background: ${message.notification?.title}');
         _handleMessage(message);
       });
+      
+      debugPrint('✅ Firebase Messaging initialized successfully');
     } catch (e) {
-      debugPrint('Error initializing Firebase: $e');
+      debugPrint('❌ Error initializing Firebase: $e');
     }
   }
 
@@ -84,15 +88,37 @@ class FirebaseService {
     final data = message.data;
 
     if (notification != null) {
-      debugPrint('Title: ${notification.title}');
-      debugPrint('Body: ${notification.body}');
+      debugPrint('📨 Title: ${notification.title}');
+      debugPrint('📨 Body: ${notification.body}');
+      
+      // Save notification to local database
+      try {
+        final body = notification.body ?? '';
+        final preview = body.length > 100 ? '${body.substring(0, 100)}...' : body;
+        
+        final notificationModel = NotificationModel(
+          id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          title: notification.title ?? 'Notification',
+          body: body,
+          preview: preview,
+          type: data['type'] ?? 'general',
+          isRead: false,
+          timestamp: DateTime.now(),
+          linkedContentId: data['linkedContentId'],
+          thumbnailUrl: data['thumbnailUrl'],
+          data: data.isNotEmpty ? data : null,
+        );
+        
+        HiveStorageService.saveNotification(notificationModel);
+        debugPrint('✅ Notification saved to local database');
+      } catch (e) {
+        debugPrint('❌ Error saving notification: $e');
+      }
     }
 
     if (data.isNotEmpty) {
-      debugPrint('Data: $data');
+      debugPrint('📨 Data: $data');
     }
-
-    // You can navigate to specific screens based on data
   }
 
   // Delete FCM Token

@@ -29,28 +29,41 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
     Emitter<VideoState> emit,
   ) async {
     try {
+      print('📹 VideoLoadRequested event received (refresh: ${event.refresh})');
+      
       if (event.refresh) {
+        print('🔄 Refreshing videos...');
         emit(const VideoLoading());
         _currentOffset = 0;
         _allVideos.clear();
       } else if (state is! VideoLoading) {
+        print('⏳ Loading videos...');
         emit(const VideoLoading());
       }
 
+      print('🌐 Fetching videos from API (limit: $_limit, offset: $_currentOffset)');
       final videosData = await _apiService.getVideos(
         limit: _limit,
         offset: _currentOffset,
       );
 
-      final videos = videosData.map((json) => VideoModel.fromJson(json)).toList();
+      print('✅ Received ${videosData.length} videos from API');
+      final videos = videosData.map((json) {
+        final video = VideoModel.fromJson(json);
+        final titlePreview = video.title.length > 30 ? '${video.title.substring(0, 30)}...' : video.title;
+        print('📹 Video: ${video.id} - $titlePreview - isFavorite: ${video.isFavorite}');
+        return video;
+      }).toList();
       _allVideos.addAll(videos);
       _currentOffset += videos.length;
 
+      print('📊 Total videos loaded: ${_allVideos.length}, hasMore: ${videos.length == _limit}');
       emit(VideoLoaded(
         videos: List.from(_allVideos),
         hasMore: videos.length == _limit,
       ));
     } catch (e) {
+      print('❌ Load videos error: $e');
       _logger.e('Load videos error: $e');
       emit(VideoError(e.toString()));
     }
@@ -133,19 +146,26 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
     Emitter<VideoState> emit,
   ) async {
     try {
+      print('❤️ Toggling favorite for video: ${event.videoId}');
       final success = await _apiService.toggleFavorite(event.videoId);
+      
+      print('✅ Toggle favorite API response: $success');
       
       if (success && state is VideoLoaded) {
         // Toggle favorite in local list
         _updateVideoInList(event.videoId, (video) {
-          return video.copyWith(isFavorite: !video.isFavorite);
+          final newFavoriteStatus = !video.isFavorite;
+          print('🔄 Updating local video ${video.id} isFavorite: ${video.isFavorite} -> $newFavoriteStatus');
+          return video.copyWith(isFavorite: newFavoriteStatus);
         });
 
         final currentState = state as VideoLoaded;
         emit(currentState.copyWith(videos: List.from(_allVideos)));
+        print('✅ Favorite toggled successfully, state updated');
       }
     } catch (e) {
       _logger.e('Toggle favorite error: $e');
+      print('❌ Error toggling favorite: $e');
     }
   }
 

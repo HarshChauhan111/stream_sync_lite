@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:async';
 import '../bloc/video/video_bloc.dart';
 import '../bloc/video/video_event.dart';
@@ -91,17 +92,26 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   void dispose() {
     _progressTimer?.cancel();
     
-    // Save final progress before disposing
-    final position = _videoPlayerController.value.position.inSeconds;
-    context.read<VideoBloc>().add(
-      VideoProgressUpdated(
-        videoId: widget.video.id,
-        position: position,
-      ),
-    );
+    // Pause video first
+    if (_videoPlayerController.value.isPlaying) {
+      _videoPlayerController.pause();
+    }
     
+    // Save final progress before disposing
+    if (_isInitialized) {
+      final position = _videoPlayerController.value.position.inSeconds;
+      context.read<VideoBloc>().add(
+        VideoProgressUpdated(
+          videoId: widget.video.id,
+          position: position,
+        ),
+      );
+    }
+    
+    // Dispose controllers
     _chewieController?.dispose();
     _videoPlayerController.dispose();
+    
     super.dispose();
   }
 
@@ -130,13 +140,24 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           ),
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
-            onPressed: () {
-              // Share functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Share: ${widget.video.title}'),
-                ),
-              );
+            onPressed: () async {
+              try {
+                await Share.share(
+                  '${widget.video.title}\n\n'
+                  'by ${widget.video.channelName}\n\n'
+                  'Watch here: ${widget.video.videoUrl}',
+                  subject: widget.video.title,
+                );
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to share: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
           ),
         ],

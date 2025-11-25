@@ -163,20 +163,19 @@ class ApiService {
   }) async {
     try {
       final accessToken = HiveStorageService.getAccessToken();
-      if (accessToken == null) {
-        throw Exception('No access token found');
+      
+      final headers = {'Content-Type': 'application/json'};
+      if (accessToken != null) {
+        headers['Authorization'] = 'Bearer $accessToken';
       }
 
       final response = await _client.get(
         Uri.parse('${AppConfig.baseUrl}/videos?limit=$limit&offset=$offset'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
+        headers: headers,
       ).timeout(AppConfig.connectionTimeout);
 
       final data = _handleResponse(response);
-      return List<Map<String, dynamic>>.from(data['videos'] ?? []);
+      return List<Map<String, dynamic>>.from(data['data'] ?? []);
     } catch (e) {
       throw Exception('Network error: ${e.toString()}');
     }
@@ -186,20 +185,19 @@ class ApiService {
   Future<Map<String, dynamic>?> getVideoById(String videoId) async {
     try {
       final accessToken = HiveStorageService.getAccessToken();
-      if (accessToken == null) {
-        throw Exception('No access token found');
+      
+      final headers = {'Content-Type': 'application/json'};
+      if (accessToken != null) {
+        headers['Authorization'] = 'Bearer $accessToken';
       }
 
       final response = await _client.get(
         Uri.parse('${AppConfig.baseUrl}/videos/$videoId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
+        headers: headers,
       ).timeout(AppConfig.connectionTimeout);
 
       final data = _handleResponse(response);
-      return data['video'] as Map<String, dynamic>?;
+      return data['data'] as Map<String, dynamic>?;
     } catch (e) {
       throw Exception('Network error: ${e.toString()}');
     }
@@ -219,7 +217,7 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
         },
-        body: jsonEncode({'position': position}),
+        body: jsonEncode({'lastPlayedPosition': position}),
       ).timeout(AppConfig.connectionTimeout);
 
       _handleResponse(response);
